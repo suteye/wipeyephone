@@ -10,7 +10,7 @@ export type LiffProfile = {
 // เพราะปลอมแปลงได้ — ต้องเช็คกับ LINE ก่อนทุกครั้ง
 // เอกสาร: https://developers.line.biz/en/reference/line-login/#verify-id-token
 export async function verifyLiffIdToken(idToken: string): Promise<LiffProfile | null> {
-  const clientId = process.env.LINE_CHANNEL_ID;
+  const clientId = process.env.NEXT_PUBLIC_LINE_CHANNEL_ID;
   if (!clientId) {
     console.error("[liff-verify] Missing LINE_CHANNEL_ID environment variable");
     throw new Error("Missing LINE_CHANNEL_ID environment variable");
