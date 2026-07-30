@@ -25,12 +25,24 @@ async function getPhones(): Promise<StockPhone[]> {
   return response.json();
 }
 
+async function getMe(): Promise<{ loggedIn: boolean }> {
+  const response = await fetch("/api/me");
+  if (!response.ok) return { loggedIn: false };
+  return response.json();
+}
+
 export default function Home() {
   const { data: phones = [], isLoading } = useQuery({
     queryKey: ["phones"],
     queryFn: getPhones,
     staleTime: 60_000,
   });
+  const { data: me } = useQuery({
+    queryKey: ["me"],
+    queryFn: getMe,
+    staleTime: 60_000,
+  });
+  const loggedIn = me?.loggedIn ?? false;
   return (
     <main className="min-h-dvh overflow-hidden bg-background">
       <div className="border-b border-border bg-card px-4 py-2 text-center text-xs text-muted-foreground sm:px-6">
@@ -58,15 +70,18 @@ export default function Home() {
           </Link>
         </nav>
         <div className="flex items-center gap-2">
-          <Button asChild variant="ghost" className="hidden sm:inline-flex">
-            <Link href="/liff">เข้าสู่ระบบ</Link>
-          </Button>
-          <Button asChild className="rounded-full px-4 shadow-none">
-            <Link href="/dashboard">
-              บัญชีของฉัน
-              <ArrowRight className="ml-1.5 size-4" />
-            </Link>
-          </Button>
+          {loggedIn ? (
+            <Button asChild className="rounded-full px-4 shadow-none">
+              <Link href="/dashboard">
+                บัญชีของฉัน
+                <ArrowRight className="ml-1.5 size-4" />
+              </Link>
+            </Button>
+          ) : (
+            <Button asChild className="rounded-full px-4 shadow-none">
+              <Link href="/liff">เข้าสู่ระบบ</Link>
+            </Button>
+          )}
           <Button
             variant="ghost"
             size="icon"
