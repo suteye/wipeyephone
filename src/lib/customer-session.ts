@@ -7,7 +7,7 @@ const COOKIE_NAME = "wipeye_customer";
 const MAX_AGE_SECONDS = 60 * 60 * 24 * 30; // 30 วัน
 
 function getSecretKey() {
-  const secret = process.env.CUSTOMER_SESSION_SECRET;
+  const secret = process.env.NEXT_PUBLIC_CUSTOMER_SESSION_SECRET;
   if (!secret) throw new Error("Missing CUSTOMER_SESSION_SECRET environment variable");
   return new TextEncoder().encode(secret);
 }
