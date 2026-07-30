@@ -74,9 +74,9 @@ export function DashboardView({ customerName }: { customerName: string }) {
             </span>
             วิปอายโฟน
           </Link>
-          <Button asChild variant="ghost" className="text-sm">
+          {/* <Button asChild variant="ghost" className="text-sm">
             <Link href="/admin">โหมดแอดมิน</Link>
-          </Button>
+          </Button> */}
         </div>
       </header>
 
