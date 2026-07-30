@@ -1,0 +1,22 @@
+import Link from "next/link";
+import { AdminNav } from "./admin-nav";
+
+export default function AdminLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <main className="min-h-dvh bg-background">
+      <div className="mx-auto grid min-h-dvh max-w-7xl lg:grid-cols-[220px_1fr]">
+        <aside className="hidden border-r bg-card p-5 lg:block">
+          <Link href="/" className="flex items-center gap-2 font-semibold">
+            <span className="grid size-8 place-items-center rounded-lg bg-primary text-xs font-bold text-primary-foreground">
+              W
+            </span>
+            วิปอายโฟน
+          </Link>
+          <p className="mt-10 px-3 text-xs font-medium text-muted-foreground">เมนูจัดการร้าน</p>
+          <AdminNav />
+        </aside>
+        <section className="p-4 sm:p-7">{children}</section>
+      </div>
+    </main>
+  );
+}

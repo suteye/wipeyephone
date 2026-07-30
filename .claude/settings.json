@@ -1,0 +1,45 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(kill 56913 59786)",
+      "Bash(pnpm dev *)",
+      "Bash(disown)",
+      "Bash(find /Users/sutima.p -maxdepth 1 -name \"pnpm-lock.yaml\" 2>/dev/null *)",
+      "Read(//Users/sutima.p/**)",
+      "Bash(curl -sI http://localhost:3000)",
+      "Bash(find / -maxdepth 6 -iname \"*chromium-cli*\")",
+      "Bash(npm ls *)",
+      "Bash(curl -s http://localhost:3000)",
+      "Bash(curl -s http://localhost:3000 -o /tmp/wipeye_home.html)",
+      "Bash(curl -s --compressed http://localhost:3000 -o /tmp/wipeye_home.html)",
+      "Bash(curl -s --compressed http://localhost:3000 -o /tmp/wipeye_home2.html -w \"HTTP:%{http_code}\\\\n\")",
+      "Bash(curl -s --compressed http://localhost:3000 -o /tmp/wipeye_home3.html -w \"HTTP:%{http_code}\\\\n\")",
+      "Bash(claude mcp *)",
+      "Bash(curl -s -o /tmp/home.html -w \"home: %{http_code}\\\\n\" http://localhost:3000)",
+      "Bash(curl -s -o /tmp/login.html -w \"login: %{http_code}\\\\n\" http://localhost:3000/login)",
+      "Bash(curl -s -o /tmp/admin.html -w \"admin: %{http_code}\\\\n\" -D /tmp/admin_headers.txt http://localhost:3000/admin)",
+      "Bash(npm view *)",
+      "Bash(mkdir -p /Users/sutima.p/Documents/wipeyephone/src/app/api/auth/\\\\[...nextauth\\\\])",
+      "Bash(lsof -ti:3000 -sTCP:LISTEN)",
+      "Bash(xargs -r kill)",
+      "Bash(nohup npm run dev)",
+      "Bash(timeout 30 bash -c 'until curl -sf http://localhost:3000 >/dev/null; do sleep 1; done')",
+      "Bash(curl -s -o /dev/null -w \"home: %{http_code}\\\\n\" http://localhost:3000)",
+      "Bash(curl -s -o /dev/null -w \"login: %{http_code}\\\\n\" http://localhost:3000/login)",
+      "Bash(curl -s -o /tmp/admin_headers.txt -o /dev/null -w \"admin: %{http_code}\\\\n\" -D /tmp/admin_headers.txt http://localhost:3000/admin)",
+      "Bash(curl -s -D - -o /dev/null http://localhost:3000/admin)",
+      "Bash(curl -s http://localhost:3000/api/auth/providers)",
+      "Bash(curl -s -D - -o /dev/null http://localhost:3000/api/auth/csrf)",
+      "Bash(curl -s --compressed http://localhost:3000/login -o /tmp/login2.html)",
+      "Bash(node --check /Users/sutima.p/Documents/wipeyephone/scripts/seed-products.mjs)",
+      "Bash(curl -s -o /dev/null -w \"admin\\(unauth\\): %{http_code}\\\\n\" http://localhost:3000/admin)",
+      "Bash(curl -s -o /dev/null -w \"products\\(unauth\\): %{http_code}\\\\n\" http://localhost:3000/admin/products)",
+      "Bash(curl -s -o /dev/null -w \"customers\\(unauth\\): %{http_code}\\\\n\" http://localhost:3000/admin/customers)",
+      "Bash(git -C /Users/sutima.p/Documents/wipeyephone mv src/app/admin/customers/page.tsx src/app/admin/orders/page.tsx)",
+      "Bash(curl -s -o /dev/null -w \"check: %{http_code}\\\\n\" http://localhost:3000/admin/products)"
+    ],
+    "additionalDirectories": [
+      "/Users/sutima.p/Documents/wipeyephone/src/app/api/auth"
+    ]
+  }
+}
