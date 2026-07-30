@@ -1,6 +1,8 @@
 "use client";
 
+import { useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import {
   ArrowRight,
@@ -32,6 +34,7 @@ async function getMe(): Promise<{ loggedIn: boolean }> {
 }
 
 export default function Home() {
+  const router = useRouter();
   const { data: phones = [], isLoading } = useQuery({
     queryKey: ["phones"],
     queryFn: getPhones,
@@ -43,6 +46,17 @@ export default function Home() {
     staleTime: 60_000,
   });
   const loggedIn = me?.loggedIn ?? false;
+
+  // LINE ควร redirect กลับมาที่ /liff โดยตรงหลัง login (ตั้งค่าใน LIFF Endpoint URL)
+  // แต่ถ้า Endpoint URL ตั้งเป็นโดเมนรากแทน พารามิเตอร์พวกนี้จะมาโผล่ที่นี่แทน —
+  // ส่งต่อไป /liff ให้ liff.init() ประมวลผล login ต่อให้เสร็จ กันหลุด flow เงียบๆ
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.has("liffClientId") || params.has("liffRedirectUri") || params.has("code")) {
+      router.replace(`/liff${window.location.search}`);
+    }
+  }, [router]);
+
   return (
     <main className="min-h-dvh overflow-hidden bg-background">
       <div className="border-b border-border bg-card px-4 py-2 text-center text-xs text-muted-foreground sm:px-6">
