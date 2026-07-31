@@ -25,7 +25,7 @@ export async function GET(_request: Request, context: RouteContext<"/api/phones/
   const [{ data: product }, { data: plans }] = await Promise.all([
     supabase
       .from("products")
-      .select("id, name, price, description, condition_note, battery_health, images, videos")
+      .select("id, name, price, description, condition_note, battery_health, images, videos, cover_image")
       .eq("id", id)
       .eq("is_active", true)
       .maybeSingle(),
@@ -41,6 +41,11 @@ export async function GET(_request: Request, context: RouteContext<"/api/phones/
 
   const plan = plans?.[0];
 
+  const images = product.images ?? [];
+  const orderedImages = product.cover_image
+    ? [product.cover_image, ...images.filter((src: string) => src !== product.cover_image)]
+    : images;
+
   const detail: PhoneDetail = {
     id: product.id,
     name: product.name,
@@ -48,7 +53,7 @@ export async function GET(_request: Request, context: RouteContext<"/api/phones/
     description: product.description,
     condition: product.condition_note,
     battery: product.battery_health,
-    images: product.images ?? [],
+    images: orderedImages,
     videos: product.videos ?? [],
     plan: plan
       ? { id: plan.id, totalInstallments: plan.total_installments, installmentAmount: Number(plan.installment_amount) }

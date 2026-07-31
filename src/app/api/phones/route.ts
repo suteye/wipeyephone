@@ -14,7 +14,7 @@ export async function GET() {
 
   const { data, error } = await supabase
     .from("products")
-    .select("id, name, price, condition_note, battery_health, images")
+    .select("id, name, price, condition_note, battery_health, images, cover_image")
     .eq("is_active", true)
     .order("created_at", { ascending: false });
 
@@ -22,7 +22,7 @@ export async function GET() {
 
   const phones: StockPhone[] = (data ?? []).map((product) => {
     const images = product.images ?? [];
-    const image = images.length > 0 ? images[Math.floor(Math.random() * images.length)] : null;
+    const image = product.cover_image ?? (images.length > 0 ? images[Math.floor(Math.random() * images.length)] : null);
     return {
       id: product.id,
       name: product.name,

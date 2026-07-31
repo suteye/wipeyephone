@@ -131,3 +131,20 @@ create policy "public read product media" on storage.objects for select using (b
 insert into storage.buckets (id, name, public)
 values ('payment-slips', 'payment-slips', false)
 on conflict (id) do nothing;
+
+-- รูปหน้าปกที่แอดมินเลือกเองจากรูปที่อัปโหลด (ต้องเป็นค่าใดค่าหนึ่งใน images[])
+-- ถ้าไม่ได้เลือก (null) หน้าร้านจะสุ่มโชว์รูปจาก images[] เหมือนเดิม
+alter table public.products add column if not exists cover_image text;
+
+-- แพทเทิร์นข้อความสำหรับแอดมิน ใช้คัดลอกไปวางส่งลูกค้าทาง LINE OA เอง (manual —
+-- ยังไม่ได้ต่อ LINE Messaging API ให้กดส่งจากในระบบได้ตรงๆ)
+create table public.message_templates (
+  id uuid primary key default gen_random_uuid(),
+  name text not null,
+  category text,
+  body text not null,
+  is_active boolean not null default true,
+  created_at timestamptz not null default now()
+);
+alter table public.message_templates enable row level security;
+-- ไม่มี policy สาธารณะเลย เข้าถึงได้เฉพาะผ่าน service-role client (แอดมิน) เท่านั้น

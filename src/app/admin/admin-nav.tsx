@@ -2,14 +2,15 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ClipboardList, LayoutDashboard, Package, Users } from "lucide-react";
+import { ClipboardList, LayoutDashboard, MessageSquare, Package, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const items = [
+export const adminNavItems = [
   { href: "/admin", label: "ภาพรวม", icon: LayoutDashboard },
   { href: "/admin/orders", label: "คำสั่งซื้อ", icon: ClipboardList },
   { href: "/admin/products", label: "สินค้า", icon: Package },
   { href: "/admin/customers", label: "ลูกค้า", icon: Users },
+  { href: "/admin/templates", label: "ข้อความ", icon: MessageSquare },
 ];
 
 export function AdminNav() {
@@ -17,7 +18,7 @@ export function AdminNav() {
 
   return (
     <nav className="mt-3 space-y-1 text-sm">
-      {items.map((item) => {
+      {adminNavItems.map((item) => {
         const active = pathname === item.href;
         return (
           <Link

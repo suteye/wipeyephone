@@ -5,7 +5,7 @@ import { getRecentPaymentSlips } from "@/lib/admin/payments";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { money } from "@/lib/mock-data";
 import { PaymentsTable } from "./payments-table";
-import { AddProductSheet } from "./products/add-product-sheet";
+import { ProductSheet } from "./products/product-sheet";
 
 export default async function AdminPage() {
   const { user } = await requireAdmin();
@@ -37,7 +37,7 @@ export default async function AdminPage() {
 
   return (
     <>
-      <header className="flex items-center justify-between">
+      <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="text-sm text-muted-foreground">{today}</p>
           <h1 className="mt-1 text-2xl font-semibold">ภาพรวมร้าน</h1>
@@ -47,7 +47,7 @@ export default async function AdminPage() {
           <Button size="icon" variant="outline" className="rounded-full" aria-label="การแจ้งเตือน">
             <Bell className="size-4" />
           </Button>
-          <AddProductSheet />
+          <ProductSheet mode="create" />
         </div>
       </header>
       <div id="overview" className="mt-8 grid gap-4 sm:grid-cols-3">
