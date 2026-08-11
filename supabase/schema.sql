@@ -148,3 +148,19 @@ create table public.message_templates (
 );
 alter table public.message_templates enable row level security;
 -- ไม่มี policy สาธารณะเลย เข้าถึงได้เฉพาะผ่าน service-role client (แอดมิน) เท่านั้น
+
+-- บัญชีธนาคารที่ลูกค้าโอนเข้า แอดมินแก้ไขได้เอง (เดิม hardcode ไว้ในหน้าชำระเงิน)
+-- มีได้หลายบัญชี แต่ใช้งานจริงทีละบัญชี (is_active) — เปิดบัญชีใหม่แล้วระบบจะปิดบัญชีอื่นให้อัตโนมัติ
+create table if not exists public.bank_accounts (
+  id uuid primary key default gen_random_uuid(),
+  bank_name text not null,
+  account_name text not null,
+  account_number text not null,
+  is_active boolean not null default false,
+  created_at timestamptz not null default now()
+);
+alter table public.bank_accounts enable row level security;
+drop policy if exists "anyone can view active bank account" on public.bank_accounts;
+create policy "anyone can view active bank account" on public.bank_accounts for select using (is_active = true or public.is_admin());
+drop policy if exists "admins manage bank accounts" on public.bank_accounts;
+create policy "admins manage bank accounts" on public.bank_accounts for all using (public.is_admin()) with check (public.is_admin());

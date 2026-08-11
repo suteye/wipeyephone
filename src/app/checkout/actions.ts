@@ -3,14 +3,15 @@
 import { revalidatePath } from "next/cache";
 import { requireCustomerAction } from "@/lib/customer-session";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import {
+  buildInstallmentSchedule,
+  INSTALLMENT_SURCHARGE,
+  isFrequency,
+  isValidInstallmentOption,
+  isWeekOption,
+} from "@/lib/installment-plan";
 
 export type SubmitPaymentResult = { error: string } | { success: true };
-
-function addDays(date: Date, days: number) {
-  const result = new Date(date);
-  result.setDate(result.getDate() + days);
-  return result.toISOString().slice(0, 10);
-}
 
 async function uploadSlip(
   supabase: ReturnType<typeof createSupabaseAdminClient>,
@@ -29,7 +30,8 @@ export async function submitPayment(formData: FormData): Promise<SubmitPaymentRe
 
   const productId = String(formData.get("productId") ?? "");
   const mode = String(formData.get("mode") ?? "");
-  const planId = formData.get("planId") ? String(formData.get("planId")) : null;
+  const freqRaw = formData.get("freq") ? String(formData.get("freq")) : null;
+  const weeksRaw = formData.get("weeks") ? Number(formData.get("weeks")) : null;
   const transferredAmount = Number(formData.get("amount"));
   const transferredAtRaw = String(formData.get("transferredAt") ?? "");
   const slip = formData.get("slip");
@@ -50,18 +52,17 @@ export async function submitPayment(formData: FormData): Promise<SubmitPaymentRe
     .maybeSingle();
   if (!product) return { error: "ไม่พบสินค้านี้ หรือสินค้าปิดการขายไปแล้ว" };
 
-  let plan: { id: string; total_installments: number; interval_days: number; installment_amount: number } | null = null;
+  // แผนผ่อนคำนวณจากค่าที่ลูกค้าเลือก (ความถี่/ระยะเวลา) ไม่เชื่อยอด/จำนวนงวดที่ส่งมาจาก client ตรงๆ
+  // คำนวณใหม่ฝั่งเซิร์ฟเวอร์เสมอ กันลูกค้าแก้ไข formData ส่งยอดที่ต้องผ่อนน้อยกว่าจริง
+  let schedule: { sequence: number; dueDate: string; amount: number }[] = [];
+  let totalAmount = Number(product.price);
   if (mode === "installment") {
-    if (!planId) return { error: "ไม่พบแผนผ่อนชำระ" };
-    const { data } = await supabase
-      .from("installment_plans")
-      .select("id, total_installments, interval_days, installment_amount")
-      .eq("id", planId)
-      .eq("product_id", productId)
-      .eq("is_active", true)
-      .maybeSingle();
-    if (!data) return { error: "แผนผ่อนนี้ไม่พร้อมใช้งานแล้ว กรุณาเลือกใหม่" };
-    plan = { ...data, installment_amount: Number(data.installment_amount) };
+    if (!isFrequency(freqRaw) || !isWeekOption(weeksRaw)) return { error: "ไม่พบแผนผ่อนชำระ กรุณาเลือกใหม่" };
+    totalAmount = Number(product.price) + INSTALLMENT_SURCHARGE;
+    if (!isValidInstallmentOption(totalAmount, freqRaw, weeksRaw)) {
+      return { error: "แผนผ่อนนี้ไม่ตรงเงื่อนไขขั้นต่ำงวดละ 300 บาท กรุณาเลือกใหม่" };
+    }
+    schedule = buildInstallmentSchedule(totalAmount, freqRaw, weeksRaw);
   }
 
   const uploaded = await uploadSlip(supabase, slip);
@@ -74,8 +75,8 @@ export async function submitPayment(formData: FormData): Promise<SubmitPaymentRe
       customer_id: user.id,
       product_id: productId,
       payment_type: mode,
-      total_amount: Number(product.price),
-      plan_id: plan?.id ?? null,
+      total_amount: totalAmount,
+      plan_id: null,
     })
     .select("id")
     .single();
@@ -83,12 +84,12 @@ export async function submitPayment(formData: FormData): Promise<SubmitPaymentRe
   if (orderError || !order) return { error: `สร้างคำสั่งซื้อไม่สำเร็จ: ${orderError?.message ?? "unknown error"}` };
 
   let firstInstallmentId: string | null = null;
-  if (plan) {
-    const rows = Array.from({ length: plan.total_installments }, (_, i) => ({
+  if (schedule.length > 0) {
+    const rows = schedule.map((row) => ({
       order_id: order.id,
-      sequence: i + 1,
-      due_date: addDays(new Date(), i * plan!.interval_days),
-      amount: plan!.installment_amount,
+      sequence: row.sequence,
+      due_date: row.dueDate,
+      amount: row.amount,
     }));
     const { data: installments, error: installmentsError } = await supabase
       .from("installments")

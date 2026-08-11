@@ -1,15 +1,23 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { loginWithLiff } from "./actions";
 
-export default function LiffLoginPage() {
+// ป้องกัน open redirect — รับเฉพาะ path ภายในเว็บเราเอง (ขึ้นต้นด้วย / เดี่ยว ไม่ใช่ //)
+function safeNext(next: string | null): string {
+  if (next && next.startsWith("/") && !next.startsWith("//")) return next;
+  return "/dashboard";
+}
+
+function LiffLoginInner() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
+    const next = safeNext(searchParams.get("next"));
 
     async function run() {
       const liffId = process.env.NEXT_PUBLIC_LIFF_ID;
@@ -41,7 +49,7 @@ export default function LiffLoginPage() {
           return;
         }
 
-        router.replace("/dashboard");
+        router.replace(next);
       } catch (err) {
         if (!cancelled) setError(err instanceof Error ? err.message : "เข้าสู่ระบบไม่สำเร็จ");
       }
@@ -51,7 +59,7 @@ export default function LiffLoginPage() {
     return () => {
       cancelled = true;
     };
-  }, [router]);
+  }, [router, searchParams]);
 
   return (
     <main className="grid min-h-dvh place-items-center bg-background px-4">
@@ -71,5 +79,26 @@ export default function LiffLoginPage() {
         )}
       </div>
     </main>
+  );
+}
+
+function LiffLoadingFallback() {
+  return (
+    <main className="grid min-h-dvh place-items-center bg-background px-4">
+      <div className="text-center">
+        <div className="mx-auto grid size-12 place-items-center rounded-2xl bg-gradient-brand text-primary-foreground">
+          <span className="size-5 animate-spin rounded-full border-2 border-primary-foreground/40 border-t-primary-foreground" />
+        </div>
+        <p className="mt-4 text-sm text-muted-foreground">กำลังเข้าสู่ระบบผ่าน LINE...</p>
+      </div>
+    </main>
+  );
+}
+
+export default function LiffLoginPage() {
+  return (
+    <Suspense fallback={<LiffLoadingFallback />}>
+      <LiffLoginInner />
+    </Suspense>
   );
 }

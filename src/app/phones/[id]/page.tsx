@@ -3,8 +3,9 @@
 import { use, useRef, useState } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, BadgeCheck, ChevronLeft, ChevronRight, ImageOff, ShieldCheck, Sparkles, Truck } from "lucide-react";
+import { ArrowLeft, BadgeCheck, ChevronLeft, ChevronRight, ImageOff, ShieldCheck, Truck } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { InstallmentCalculator } from "@/components/installment-calculator";
 import { money } from "@/lib/mock-data";
 import { getPhone } from "@/lib/phones";
 
@@ -179,15 +180,15 @@ export default function PhoneDetailPage({ params }: PageProps<"/phones/[id]">) {
                 <p className="mt-1 text-3xl font-semibold">{money.format(phone.price)}</p>
               </div>
               <div className="mt-6">
-                <p className="text-sm font-medium">เลือกวิธีชำระ</p>
-                <div className="mt-3 space-y-3">
+                <p className="text-sm font-medium">ชำระเต็มจำนวน</p>
+                <div className="mt-3">
                   <Link
                     href={`/checkout?phone=${phone.id}&mode=full`}
                     className="block rounded-xl border p-4 transition-colors hover:border-primary hover:bg-secondary/40"
                   >
                     <div className="flex justify-between gap-4">
                       <div>
-                        <p className="font-medium">ชำระเต็มจำนวน</p>
+                        <p className="font-medium">โอนครั้งเดียว จบเลย</p>
                         <p className="mt-1 text-xs text-muted-foreground">
                           โอนครั้งเดียว แล้วแนบสลิปเพื่อยืนยัน
                         </p>
@@ -195,29 +196,23 @@ export default function PhoneDetailPage({ params }: PageProps<"/phones/[id]">) {
                       <p className="shrink-0 font-semibold">{money.format(phone.price)}</p>
                     </div>
                   </Link>
-                  {phone.plan && (
-                    <Link
-                      href={`/checkout?phone=${phone.id}&mode=installment&plan=${phone.plan.id}`}
-                      className="relative block overflow-hidden rounded-xl border border-primary bg-secondary/50 p-4 transition-colors hover:bg-secondary"
-                    >
-                      <span className="absolute -right-8 -top-8 size-20 rounded-full bg-glow/25 blur-2xl" aria-hidden />
-                      <span className="mb-2 inline-flex items-center gap-1 rounded-full bg-gradient-brand px-2 py-0.5 text-[11px] font-medium text-primary-foreground">
-                        <Sparkles className="size-3" /> แนะนำ ผ่อนสบายกว่า
-                      </span>
-                      <div className="relative flex justify-between gap-4">
-                        <div>
-                          <p className="font-medium">ผ่อนชำระ {phone.plan.totalInstallments} งวด</p>
-                          <p className="mt-1 text-xs text-muted-foreground">
-                            ชำระทุกงวด · ดูรายละเอียดงวดได้ในบัญชี
-                          </p>
-                        </div>
-                        <p className="shrink-0 font-semibold text-primary">
-                          {money.format(phone.plan.installmentAmount)}/งวด
-                        </p>
-                      </div>
-                    </Link>
-                  )}
                 </div>
+              </div>
+              <div className="mt-6">
+                <InstallmentCalculator
+                  ctaMode="purchase"
+                  eyebrow="หรือเลือกผ่อน"
+                  title="ผ่อนชำระ"
+                  subtitle="เลือกความถี่และระยะเวลาที่สะดวก แล้วกดดำเนินการต่อ"
+                  fixedPhone={{
+                    id: phone.id,
+                    name: phone.name,
+                    price: phone.price,
+                    image: phone.images[0] ?? null,
+                    condition: phone.condition,
+                    battery: phone.battery,
+                  }}
+                />
               </div>
               <div className="mt-6 space-y-3 border-t pt-5 text-sm text-muted-foreground">
                 <p className="flex items-center gap-2.5">

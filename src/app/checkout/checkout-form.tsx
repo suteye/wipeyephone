@@ -3,18 +3,62 @@
 import { useState, type FormEvent, type ReactNode } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, Check, Upload } from "lucide-react";
+import { ArrowLeft, Check, Copy, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { money } from "@/lib/mock-data";
 import { getPhone } from "@/lib/phones";
 import type { CustomerInstallment } from "@/lib/orders";
+import type { ActiveBankAccount } from "@/app/api/bank-account/route";
+import {
+  buildInstallmentSchedule,
+  INSTALLMENT_SURCHARGE,
+  isValidInstallmentOption,
+  type Frequency,
+} from "@/lib/installment-plan";
 import { submitInstallmentPayment, submitPayment } from "./actions";
 
 function nowForInput() {
   const now = new Date();
   now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
   return now.toISOString().slice(0, 16);
+}
+
+async function getActiveBankAccount(): Promise<ActiveBankAccount | null> {
+  const response = await fetch("/api/bank-account");
+  if (!response.ok) throw new Error("โหลดบัญชีธนาคารไม่สำเร็จ");
+  return response.json();
+}
+
+function CopyAccountNumberButton({ accountNumber }: { accountNumber: string }) {
+  const [copied, setCopied] = useState(false);
+
+  async function handleCopy() {
+    await navigator.clipboard.writeText(accountNumber);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={handleCopy}
+      aria-label="คัดลอกเลขบัญชี"
+      className={`inline-flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium transition-colors ${
+        copied ? "bg-success/15 text-success" : "bg-secondary text-primary hover:bg-secondary/70"
+      }`}
+    >
+      {copied ? (
+        <>
+          <Check className="size-3" /> คัดลอกแล้ว
+        </>
+      ) : (
+        <>
+          <Copy className="size-3" /> คัดลอก
+        </>
+      )}
+    </button>
+  );
 }
 
 async function getInstallment(id: string): Promise<CustomerInstallment | null> {
@@ -88,6 +132,11 @@ function PaymentForm({
   error: string | null;
 }) {
   const [fileName, setFileName] = useState<string | null>(null);
+  const { data: bankAccount, isLoading: bankAccountLoading } = useQuery({
+    queryKey: ["bank-account"],
+    queryFn: getActiveBankAccount,
+    staleTime: 5 * 60_000,
+  });
 
   return (
     <div className="grid gap-7 md:grid-cols-[1fr_.75fr]">
@@ -174,9 +223,20 @@ function PaymentForm({
       <aside className="h-fit rounded-2xl bg-secondary p-5">
         <p className="text-sm font-medium">โอนเข้าบัญชี</p>
         <div className="mt-4 border-y border-border py-4">
-          <p className="text-xs text-muted-foreground">ธนาคารกสิกรไทย</p>
-          <p className="mt-1 font-semibold">วิปอายโฟน สาขาหลัก</p>
-          <p className="mt-2 font-mono text-sm">xxx-x-xxxxx-x</p>
+          {bankAccountLoading ? (
+            <div className="h-14 animate-pulse rounded-lg bg-background/60" />
+          ) : bankAccount ? (
+            <>
+              <p className="text-xs text-muted-foreground">{bankAccount.bankName}</p>
+              <p className="mt-1 font-semibold">{bankAccount.accountName}</p>
+              <div className="mt-2 flex items-center justify-between gap-2">
+                <p className="font-mono text-sm">{bankAccount.accountNumber}</p>
+                <CopyAccountNumberButton accountNumber={bankAccount.accountNumber} />
+              </div>
+            </>
+          ) : (
+            <p className="text-sm text-muted-foreground">ร้านยังไม่ได้ตั้งค่าบัญชีรับโอน กรุณาติดต่อร้านผ่าน LINE</p>
+          )}
         </div>
         <div className="mt-4">
           <p className="text-xs text-muted-foreground">ยอดที่ต้องชำระ</p>
@@ -190,7 +250,17 @@ function PaymentForm({
   );
 }
 
-function NewOrderCheckout({ phoneId, mode }: { phoneId: string; mode: "full" | "installment" }) {
+function NewOrderCheckout({
+  phoneId,
+  mode,
+  freq,
+  weeks,
+}: {
+  phoneId: string;
+  mode: "full" | "installment";
+  freq: Frequency | null;
+  weeks: number | null;
+}) {
   const { data: phone, isLoading } = useQuery({
     queryKey: ["phone", phoneId],
     queryFn: () => getPhone(phoneId),
@@ -200,6 +270,11 @@ function NewOrderCheckout({ phoneId, mode }: { phoneId: string; mode: "full" | "
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
+
+  const totalWithSurcharge = phone ? phone.price + INSTALLMENT_SURCHARGE : 0;
+  const planValid =
+    mode === "full" || Boolean(freq && weeks && isValidInstallmentOption(totalWithSurcharge, freq, weeks));
+  const schedule = mode === "installment" && freq && weeks ? buildInstallmentSchedule(totalWithSurcharge, freq, weeks) : [];
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -215,7 +290,10 @@ function NewOrderCheckout({ phoneId, mode }: { phoneId: string; mode: "full" | "
 
     formData.set("productId", phone.id);
     formData.set("mode", mode);
-    if (mode === "installment" && phone.plan) formData.set("planId", phone.plan.id);
+    if (mode === "installment" && freq && weeks) {
+      formData.set("freq", freq);
+      formData.set("weeks", String(weeks));
+    }
 
     setSubmitting(true);
     try {
@@ -236,11 +314,11 @@ function NewOrderCheckout({ phoneId, mode }: { phoneId: string; mode: "full" | "
   if (!phone) {
     return <Notice title="ไม่พบคำสั่งซื้อ" description="กรุณาเลือกสินค้าใหม่อีกครั้ง" href="/phones" linkLabel="ดูสินค้าทั้งหมด" />;
   }
-  if (mode === "installment" && !phone.plan) {
+  if (mode === "installment" && !planValid) {
     return (
       <Notice
         title="แผนผ่อนนี้ไม่พร้อมใช้งานแล้ว"
-        description="กรุณากลับไปเลือกวิธีชำระเงินใหม่"
+        description="กรุณากลับไปเลือกความถี่และระยะเวลาผ่อนใหม่"
         href={`/phones/${phone.id}`}
         linkLabel="กลับไปเลือกวิธีชำระ"
       />
@@ -248,8 +326,8 @@ function NewOrderCheckout({ phoneId, mode }: { phoneId: string; mode: "full" | "
   }
   if (done) return <SuccessNotice />;
 
-  const dueAmount = mode === "full" ? phone.price : phone.plan!.installmentAmount;
-  const subtitle = mode === "full" ? "ชำระเต็มจำนวน" : `ผ่อนงวดที่ 1 จาก ${phone.plan!.totalInstallments}`;
+  const dueAmount = mode === "full" ? phone.price : (schedule[0]?.amount ?? 0);
+  const subtitle = mode === "full" ? "ชำระเต็มจำนวน" : `ผ่อนงวดที่ 1 จาก ${schedule.length}`;
 
   return (
     <PaymentForm
@@ -328,26 +406,35 @@ export function CheckoutForm({
   phoneId,
   mode,
   installmentId,
+  freq,
+  weeks,
 }: {
   phoneId: string | null;
   mode: "full" | "installment";
   installmentId: string | null;
+  freq: Frequency | null;
+  weeks: number | null;
 }) {
   let body: ReactNode;
   if (installmentId) {
     body = <ExistingInstallmentCheckout installmentId={installmentId} />;
   } else if (phoneId) {
-    body = <NewOrderCheckout phoneId={phoneId} mode={mode} />;
+    body = <NewOrderCheckout phoneId={phoneId} mode={mode} freq={freq} weeks={weeks} />;
   } else {
     body = <Notice title="ไม่พบคำสั่งซื้อ" description="กรุณาเลือกสินค้าใหม่อีกครั้ง" href="/phones" linkLabel="ดูสินค้าทั้งหมด" />;
   }
+
+  // งวดที่มีอยู่แล้ว (installmentId) มาจากหน้าบัญชี → กลับไปบัญชี
+  // ซื้อเครื่องใหม่ (phoneId) มาจากหน้าเครื่องนั้น → กลับไปหน้าเครื่องนั้นแทน ไม่ใช่ dashboard
+  // ที่ลูกค้าใหม่อาจยังไม่มีอะไรให้ดู
+  const backHref = installmentId ? "/dashboard" : phoneId ? `/phones/${phoneId}` : "/phones";
 
   return (
     <main className="min-h-[100dvh] bg-background">
       <header className="border-b bg-card">
         <div className="mx-auto flex h-17 max-w-3xl items-center px-4">
           <Button asChild variant="ghost" size="icon" aria-label="ย้อนกลับ">
-            <Link href="/dashboard">
+            <Link href={backHref}>
               <ArrowLeft className="size-5" />
             </Link>
           </Button>

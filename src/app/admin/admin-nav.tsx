@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ClipboardList, LayoutDashboard, MessageSquare, Package, Users } from "lucide-react";
+import { ClipboardList, Landmark, LayoutDashboard, MessageSquare, Package, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export const adminNavItems = [
@@ -10,6 +10,7 @@ export const adminNavItems = [
   { href: "/admin/orders", label: "คำสั่งซื้อ", icon: ClipboardList },
   { href: "/admin/products", label: "สินค้า", icon: Package },
   { href: "/admin/customers", label: "ลูกค้า", icon: Users },
+  { href: "/admin/bank-accounts", label: "บัญชีธนาคาร", icon: Landmark },
   { href: "/admin/templates", label: "ข้อความ", icon: MessageSquare },
 ];
 

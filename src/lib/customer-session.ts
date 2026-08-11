@@ -45,9 +45,11 @@ export async function getCustomerSession(): Promise<{ id: string } | null> {
 }
 
 // ใช้ใน Server Component ของหน้าที่ต้อง login เท่านั้น — เด้งไปหน้า /liff ให้ login ผ่าน LINE ใหม่
-export async function requireCustomerPage(): Promise<{ id: string }> {
+// ส่ง next = path เดิม (พร้อม query) ที่ลูกค้าตั้งใจจะไป เพื่อให้ /liff เด้งกลับมาที่เดิมหลัง login สำเร็จ
+// แทนที่จะเด้งไป /dashboard เสมอ (เช่น มาจาก /checkout?phone=... ต้องกลับไปหน้าชำระเงินเดิม ไม่ใช่ dashboard)
+export async function requireCustomerPage(next?: string): Promise<{ id: string }> {
   const session = await getCustomerSession();
-  if (!session) redirect("/liff");
+  if (!session) redirect(next ? `/liff?next=${encodeURIComponent(next)}` : "/liff");
   return session;
 }
 
