@@ -7,25 +7,22 @@ import { useQuery } from "@tanstack/react-query";
 import {
   ArrowRight,
   BadgeCheck,
+  BatteryMedium,
   ChevronRight,
   ImageOff,
   Menu,
   Search,
   ShieldCheck,
   Sparkles,
+  Truck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { InstallmentCalculator } from "@/components/installment-calculator";
 import { money } from "@/lib/mock-data";
-import type { StockPhone } from "@/app/api/phones/route";
+import { getPhones } from "@/lib/phones";
 
 const TONES = ["bg-stone-100", "bg-pink-50", "bg-rose-50", "bg-fuchsia-50"];
-
-async function getPhones(): Promise<StockPhone[]> {
-  const response = await fetch("/api/phones");
-  if (!response.ok) throw new Error("โหลดสินค้าไม่สำเร็จ");
-  return response.json();
-}
 
 async function getMe(): Promise<{ loggedIn: boolean }> {
   const response = await fetch("/api/me");
@@ -59,15 +56,15 @@ export default function Home() {
 
   return (
     <main className="min-h-dvh overflow-hidden bg-background">
-      <div className="border-b border-border bg-card px-4 py-2 text-center text-xs text-muted-foreground sm:px-6">
-        รับประกันเครื่อง 3 วัน · จัดส่งฟรีทั่วไทย · ผ่อนชำระได้
+      <div className="bg-gradient-brand px-4 py-2 text-center text-xs font-medium text-primary-foreground sm:px-6">
+        ✨ รับประกันเครื่อง 3 วัน · จัดส่งฟรีทั่วไทย · ผ่อนชำระได้
       </div>
       <header className="mx-auto flex h-18 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         <Link
           href="/"
           className="flex items-center gap-2.5 font-semibold tracking-tight"
         >
-          <span className="grid size-9 place-items-center rounded-2xl bg-primary text-sm font-bold text-primary-foreground rotate-3 shadow-sm">
+          <span className="grid size-9 place-items-center rounded-2xl bg-gradient-brand text-sm font-bold text-primary-foreground rotate-3 shadow-[0_6px_16px_-6px_var(--primary)]">
             W
           </span>
           <span>วิปอายโฟน</span>
@@ -75,6 +72,9 @@ export default function Home() {
         <nav className="hidden items-center gap-7 text-sm text-muted-foreground md:flex">
           <a href="#phones" className="hover:text-foreground">
             เลือกซื้อเครื่อง
+          </a>
+          <a href="#calculator" className="hover:text-foreground">
+            คำนวณค่าผ่อน
           </a>
           <a href="#how" className="hover:text-foreground">
             วิธีผ่อน
@@ -107,13 +107,17 @@ export default function Home() {
         </div>
       </header>
 
-      <section className="relative mx-auto max-w-7xl px-4 pb-16 pt-8 sm:px-6 md:py-18 lg:px-8">
+      <section className="relative mx-auto max-w-7xl overflow-hidden px-4 pb-16 pt-8 sm:px-6 md:py-18 lg:px-8">
         <div
           aria-hidden
-          className="pointer-events-none absolute left-1/2 -top-16 size-96 -translate-x-1/2 rounded-full bg-accent/50 blur-3xl"
+          className="pointer-events-none absolute left-1/2 -top-16 size-96 -translate-x-1/2 rounded-full bg-accent/60 blur-3xl"
+        />
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -right-10 top-10 size-64 rounded-full bg-glow/30 blur-3xl"
         />
         <div className="relative mx-auto max-w-2xl text-center">
-          <p className="mb-4 inline-flex items-center gap-2 rounded-full bg-secondary px-4 py-1.5 text-sm font-medium text-primary">
+          <p className="mb-4 inline-flex items-center gap-2 rounded-full bg-secondary px-4 py-1.5 text-sm font-medium text-primary shadow-sm">
             <Sparkles className="size-4" /> iPhone มือสองที่เลือกมาแล้ว
           </p>
           <h1 className="text-4xl font-semibold leading-[1.15] tracking-tight text-foreground sm:text-5xl">
@@ -144,7 +148,7 @@ export default function Home() {
             <Button
               asChild
               size="lg"
-              className="rounded-full px-6 shadow-[0_10px_24px_-10px_var(--primary)] transition-transform hover:scale-[1.03] active:scale-100"
+              className="rounded-full bg-gradient-brand px-6 text-primary-foreground shadow-[0_10px_24px_-10px_var(--primary)] transition-transform hover:scale-[1.03] hover:opacity-95 active:scale-100"
             >
               <a href="#phones">
                 เลือกดูเครื่อง <ArrowRight className="ml-1.5 size-4" />
@@ -161,7 +165,7 @@ export default function Home() {
           </div>
           <div className="mt-9 flex flex-wrap justify-center gap-3 text-sm text-muted-foreground">
             <span className="flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1.5 shadow-sm">
-              <span className="grid size-6 place-items-center rounded-full bg-primary/10 text-primary">
+              <span className="grid size-6 place-items-center rounded-full bg-success/15 text-success">
                 <ShieldCheck className="size-3.5" />
               </span>
               ตรวจสภาพก่อนส่ง
@@ -171,6 +175,12 @@ export default function Home() {
                 <BadgeCheck className="size-3.5" />
               </span>
               ระบุสุขภาพแบตจริง
+            </span>
+            <span className="flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1.5 shadow-sm">
+              <span className="grid size-6 place-items-center rounded-full bg-glow/20 text-glow-foreground">
+                <Truck className="size-3.5" />
+              </span>
+              ส่งไว ทั่วไทย
             </span>
           </div>
         </div>
@@ -215,7 +225,7 @@ export default function Home() {
                 <Link
                   key={phone.id}
                   href={`/phones/${phone.id}`}
-                  className="group rounded-2xl border border-border bg-background p-3 transition-transform duration-200 hover:-translate-y-1"
+                  className="group rounded-2xl border border-border bg-background p-3 transition-all duration-200 hover:-translate-y-1.5 hover:shadow-[0_16px_32px_-16px_var(--primary)]"
                 >
                   <div
                     className={`relative aspect-square overflow-hidden rounded-xl ${TONES[i % TONES.length]}`}
@@ -232,7 +242,7 @@ export default function Home() {
                       </div>
                     )}
                     {phone.condition && (
-                      <span className="absolute left-3 top-3 rounded-full bg-card/95 px-2.5 py-1 text-xs font-medium">
+                      <span className="absolute left-3 top-3 rounded-full bg-card/95 px-2.5 py-1 text-xs font-medium shadow-sm">
                         {phone.condition}
                       </span>
                     )}
@@ -245,12 +255,13 @@ export default function Home() {
                           {money.format(phone.price)}
                         </p>
                         {phone.battery != null && (
-                          <p className="text-xs text-muted-foreground">
+                          <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
+                            <BatteryMedium className="size-3.5 text-success" />
                             แบตเตอรี่ {phone.battery}%
                           </p>
                         )}
                       </div>
-                      <span className="grid size-8 place-items-center rounded-full bg-secondary" aria-label={`ดู ${phone.name}`}>
+                      <span className="grid size-8 place-items-center rounded-full bg-secondary transition-colors group-hover:bg-gradient-brand group-hover:text-primary-foreground" aria-label={`ดู ${phone.name}`}>
                         <ChevronRight className="size-4" />
                       </span>
                     </div>
@@ -265,6 +276,10 @@ export default function Home() {
             </Link>
           </Button>
         </div>
+      </section>
+
+      <section id="calculator" className="mx-auto max-w-4xl px-4 py-12 sm:px-6 lg:px-8">
+        <InstallmentCalculator />
       </section>
 
       <section
@@ -284,7 +299,7 @@ export default function Home() {
         </div>
         <div className="grid divide-y divide-border border-y border-border">
           <div className="flex gap-4 py-5">
-            <span className="grid size-8 shrink-0 place-items-center rounded-full bg-secondary text-sm font-semibold text-primary">
+            <span className="grid size-8 shrink-0 place-items-center rounded-full bg-gradient-brand text-sm font-semibold text-primary-foreground">
               1
             </span>
             <div>
@@ -295,7 +310,7 @@ export default function Home() {
             </div>
           </div>
           <div className="flex gap-4 py-5">
-            <span className="grid size-8 shrink-0 place-items-center rounded-full bg-secondary text-sm font-semibold text-primary">
+            <span className="grid size-8 shrink-0 place-items-center rounded-full bg-gradient-brand text-sm font-semibold text-primary-foreground">
               2
             </span>
             <div>
@@ -306,7 +321,7 @@ export default function Home() {
             </div>
           </div>
           <div className="flex gap-4 py-5">
-            <span className="grid size-8 shrink-0 place-items-center rounded-full bg-secondary text-sm font-semibold text-primary">
+            <span className="grid size-8 shrink-0 place-items-center rounded-full bg-gradient-brand text-sm font-semibold text-primary-foreground">
               3
             </span>
             <div>

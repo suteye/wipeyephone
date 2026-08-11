@@ -3,7 +3,7 @@
 import { use, useRef, useState } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, BadgeCheck, ChevronLeft, ChevronRight, ImageOff, ShieldCheck, Truck } from "lucide-react";
+import { ArrowLeft, BadgeCheck, ChevronLeft, ChevronRight, ImageOff, ShieldCheck, Sparkles, Truck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { money } from "@/lib/mock-data";
 import { getPhone } from "@/lib/phones";
@@ -153,7 +153,17 @@ export default function PhoneDetailPage({ params }: PageProps<"/phones/[id]">) {
                 </div>
                 <div className="rounded-xl bg-secondary p-3">
                   <p className="text-xs text-muted-foreground">สุขภาพแบต</p>
-                  <p className="mt-1 font-medium">{phone.battery != null ? `${phone.battery}%` : "-"}</p>
+                  <p className="mt-1 flex items-center gap-1.5 font-medium">
+                    {phone.battery != null ? `${phone.battery}%` : "-"}
+                    {phone.battery != null && (
+                      <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-border">
+                        <span
+                          className="block h-full rounded-full bg-success"
+                          style={{ width: `${phone.battery}%` }}
+                        />
+                      </span>
+                    )}
+                  </p>
                 </div>
               </div>
             </div>
@@ -173,7 +183,7 @@ export default function PhoneDetailPage({ params }: PageProps<"/phones/[id]">) {
                 <div className="mt-3 space-y-3">
                   <Link
                     href={`/checkout?phone=${phone.id}&mode=full`}
-                    className="block rounded-xl border p-4 transition-colors hover:border-primary"
+                    className="block rounded-xl border p-4 transition-colors hover:border-primary hover:bg-secondary/40"
                   >
                     <div className="flex justify-between gap-4">
                       <div>
@@ -188,16 +198,20 @@ export default function PhoneDetailPage({ params }: PageProps<"/phones/[id]">) {
                   {phone.plan && (
                     <Link
                       href={`/checkout?phone=${phone.id}&mode=installment&plan=${phone.plan.id}`}
-                      className="block rounded-xl border border-primary bg-secondary/50 p-4 transition-colors hover:bg-secondary"
+                      className="relative block overflow-hidden rounded-xl border border-primary bg-secondary/50 p-4 transition-colors hover:bg-secondary"
                     >
-                      <div className="flex justify-between gap-4">
+                      <span className="absolute -right-8 -top-8 size-20 rounded-full bg-glow/25 blur-2xl" aria-hidden />
+                      <span className="mb-2 inline-flex items-center gap-1 rounded-full bg-gradient-brand px-2 py-0.5 text-[11px] font-medium text-primary-foreground">
+                        <Sparkles className="size-3" /> แนะนำ ผ่อนสบายกว่า
+                      </span>
+                      <div className="relative flex justify-between gap-4">
                         <div>
                           <p className="font-medium">ผ่อนชำระ {phone.plan.totalInstallments} งวด</p>
                           <p className="mt-1 text-xs text-muted-foreground">
                             ชำระทุกงวด · ดูรายละเอียดงวดได้ในบัญชี
                           </p>
                         </div>
-                        <p className="shrink-0 font-semibold">
+                        <p className="shrink-0 font-semibold text-primary">
                           {money.format(phone.plan.installmentAmount)}/งวด
                         </p>
                       </div>
@@ -206,16 +220,22 @@ export default function PhoneDetailPage({ params }: PageProps<"/phones/[id]">) {
                 </div>
               </div>
               <div className="mt-6 space-y-3 border-t pt-5 text-sm text-muted-foreground">
-                <p className="flex gap-2">
-                  <ShieldCheck className="size-4 shrink-0 text-primary" />
+                <p className="flex items-center gap-2.5">
+                  <span className="grid size-6 shrink-0 place-items-center rounded-full bg-success/15 text-success">
+                    <ShieldCheck className="size-3.5" />
+                  </span>
                   รับประกันเครื่อง 3 วันตามเงื่อนไขร้าน
                 </p>
-                <p className="flex gap-2">
-                  <BadgeCheck className="size-4 shrink-0 text-primary" />
+                <p className="flex items-center gap-2.5">
+                  <span className="grid size-6 shrink-0 place-items-center rounded-full bg-primary/10 text-primary">
+                    <BadgeCheck className="size-3.5" />
+                  </span>
                   ตรวจเช็กสภาพและข้อมูลเครื่องก่อนจัดส่ง
                 </p>
-                <p className="flex gap-2">
-                  <Truck className="size-4 shrink-0 text-primary" />
+                <p className="flex items-center gap-2.5">
+                  <span className="grid size-6 shrink-0 place-items-center rounded-full bg-glow/20 text-glow-foreground">
+                    <Truck className="size-3.5" />
+                  </span>
                   จัดส่งฟรี พร้อมเลขติดตามพัสดุ
                 </p>
               </div>

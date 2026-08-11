@@ -11,10 +11,12 @@ export default function LoginPage() {
   const [state, formAction, pending] = useActionState(login, undefined);
 
   return (
-    <main className="grid min-h-dvh place-items-center bg-secondary/40 px-4">
-      <section className="w-full max-w-sm rounded-2xl border bg-card p-6 sm:p-8">
+    <main className="relative grid min-h-dvh place-items-center overflow-hidden bg-secondary/40 px-4">
+      <div aria-hidden className="pointer-events-none absolute left-1/2 -top-20 size-96 -translate-x-1/2 rounded-full bg-accent/60 blur-3xl" />
+      <div aria-hidden className="pointer-events-none absolute -bottom-24 -right-16 size-72 rounded-full bg-glow/25 blur-3xl" />
+      <section className="relative w-full max-w-sm rounded-2xl border bg-card p-6 shadow-[0_20px_50px_-24px_var(--primary)] sm:p-8">
         <Link href="/" className="flex items-center gap-2 font-semibold">
-          <span className="grid size-8 place-items-center rounded-lg bg-primary text-xs font-bold text-primary-foreground">
+          <span className="grid size-8 place-items-center rounded-lg bg-gradient-brand text-xs font-bold text-primary-foreground">
             W
           </span>
           วิปอายโฟน
@@ -23,7 +25,11 @@ export default function LoginPage() {
         <p className="mt-1 text-sm text-muted-foreground">
           ติดตามรายการซื้อและค่างวดของคุณ
         </p>
-        <Button disabled className="mt-6 h-11 w-full rounded-xl" title="เร็วๆ นี้">
+        <Button
+          disabled
+          className="mt-6 h-11 w-full rounded-xl bg-[#06C755] text-white hover:bg-[#06C755] disabled:opacity-70"
+          title="เร็วๆ นี้"
+        >
           <MessageCircle className="mr-2 size-4" />
           เข้าสู่ระบบด้วย LINE (เร็วๆ นี้)
         </Button>
@@ -62,7 +68,7 @@ export default function LoginPage() {
           <Button
             type="submit"
             disabled={pending}
-            className="h-11 w-full rounded-xl"
+            className="h-11 w-full rounded-xl bg-gradient-brand text-primary-foreground"
           >
             <LockKeyhole className="mr-2 size-4" />
             {pending ? "กำลังเข้าสู่ระบบ..." : "เข้าสู่ระบบ"}

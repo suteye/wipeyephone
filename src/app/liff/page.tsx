@@ -62,7 +62,12 @@ export default function LiffLoginPage() {
             <p className="mt-2 text-sm text-muted-foreground">{error}</p>
           </>
         ) : (
-          <p className="text-sm text-muted-foreground">กำลังเข้าสู่ระบบผ่าน LINE...</p>
+          <>
+            <div className="mx-auto grid size-12 place-items-center rounded-2xl bg-gradient-brand text-primary-foreground">
+              <span className="size-5 animate-spin rounded-full border-2 border-primary-foreground/40 border-t-primary-foreground" />
+            </div>
+            <p className="mt-4 text-sm text-muted-foreground">กำลังเข้าสู่ระบบผ่าน LINE...</p>
+          </>
         )}
       </div>
     </main>

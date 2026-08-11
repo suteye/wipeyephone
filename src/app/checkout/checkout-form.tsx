@@ -39,7 +39,7 @@ function Notice({
     <div className="rounded-2xl border bg-card p-8 text-center">
       <p className="font-medium">{title}</p>
       <p className="mt-2 text-sm text-muted-foreground">{description}</p>
-      <Button asChild className="mt-6 rounded-full">
+      <Button asChild className="mt-6 rounded-full bg-gradient-brand text-primary-foreground">
         <Link href={href}>{linkLabel}</Link>
       </Button>
     </div>
@@ -49,14 +49,14 @@ function Notice({
 function SuccessNotice() {
   return (
     <div className="rounded-2xl border bg-card p-8 text-center">
-      <div className="mx-auto grid size-12 place-items-center rounded-full bg-pink-100 text-primary">
-        <Check className="size-6" />
+      <div className="mx-auto grid size-14 place-items-center rounded-full bg-success/15 text-success">
+        <Check className="size-7" />
       </div>
-      <p className="mt-4 text-lg font-medium">ส่งหลักฐานการชำระแล้ว</p>
+      <p className="mt-4 text-lg font-medium">ส่งหลักฐานการชำระแล้ว 🎉</p>
       <p className="mt-2 text-sm text-muted-foreground">
         ร้านจะตรวจสอบยอดให้เร็วที่สุด ติดตามสถานะได้ที่บัญชีของคุณ
       </p>
-      <Button asChild className="mt-6 rounded-full">
+      <Button asChild className="mt-6 rounded-full bg-gradient-brand text-primary-foreground">
         <Link href="/dashboard">ไปที่บัญชีของฉัน</Link>
       </Button>
     </div>
@@ -87,6 +87,8 @@ function PaymentForm({
   submitting: boolean;
   error: string | null;
 }) {
+  const [fileName, setFileName] = useState<string | null>(null);
+
   return (
     <div className="grid gap-7 md:grid-cols-[1fr_.75fr]">
       <form onSubmit={onSubmit} className="rounded-2xl border bg-card p-5 sm:p-6">
@@ -129,17 +131,43 @@ function PaymentForm({
             </label>
             <label
               htmlFor="slip"
-              className="mt-2 flex min-h-35 cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-border bg-secondary/35 px-4 text-center transition-colors hover:bg-secondary"
+              className={`mt-2 flex min-h-35 cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed px-4 text-center transition-colors ${
+                fileName
+                  ? "border-success bg-success/10"
+                  : "border-border bg-secondary/35 hover:bg-secondary"
+              }`}
             >
-              <Upload className="size-5 text-primary" />
-              <span className="mt-2 text-sm font-medium">เลือกไฟล์สลิป</span>
-              <span className="mt-1 text-xs text-muted-foreground">รองรับ JPG, PNG หรือ PDF ขนาดไม่เกิน 10 MB</span>
+              {fileName ? (
+                <>
+                  <Check className="size-5 text-success" />
+                  <span className="mt-2 max-w-full truncate text-sm font-medium text-success">{fileName}</span>
+                  <span className="mt-1 text-xs text-muted-foreground">แตะเพื่อเปลี่ยนไฟล์</span>
+                </>
+              ) : (
+                <>
+                  <Upload className="size-5 text-primary" />
+                  <span className="mt-2 text-sm font-medium">เลือกไฟล์สลิป</span>
+                  <span className="mt-1 text-xs text-muted-foreground">รองรับ JPG, PNG หรือ PDF ขนาดไม่เกิน 10 MB</span>
+                </>
+              )}
             </label>
-            <input id="slip" name="slip" type="file" accept="image/*,.pdf" className="sr-only" required />
+            <input
+              id="slip"
+              name="slip"
+              type="file"
+              accept="image/*,.pdf"
+              className="sr-only"
+              required
+              onChange={(e) => setFileName(e.currentTarget.files?.[0]?.name ?? null)}
+            />
           </div>
         </div>
         {error && <p className="mt-4 text-sm text-destructive">{error}</p>}
-        <Button type="submit" disabled={submitting} className="mt-6 w-full rounded-full">
+        <Button
+          type="submit"
+          disabled={submitting}
+          className="mt-6 w-full rounded-full bg-gradient-brand text-primary-foreground"
+        >
           {submitting ? "กำลังส่ง..." : "ส่งหลักฐานการชำระ"}
         </Button>
       </form>
@@ -152,7 +180,7 @@ function PaymentForm({
         </div>
         <div className="mt-4">
           <p className="text-xs text-muted-foreground">ยอดที่ต้องชำระ</p>
-          <p className="mt-1 text-2xl font-semibold">{money.format(dueAmount)}</p>
+          <p className="mt-1 text-2xl font-semibold text-primary">{money.format(dueAmount)}</p>
           <p className="mt-2 text-xs leading-5 text-muted-foreground">
             หลังส่งสลิป สถานะจะเป็น “รอตรวจสอบ” และจะอัปเดตเมื่อร้านยืนยันยอดแล้ว
           </p>

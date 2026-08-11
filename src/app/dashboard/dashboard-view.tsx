@@ -25,16 +25,16 @@ async function getOrders(): Promise<CustomerOrder[]> {
 type StatusInfo = { label: string; className: string };
 
 function fullOrderStatus(status: "pending_review" | "approved" | "rejected"): StatusInfo {
-  if (status === "approved") return { label: "ชำระแล้ว", className: "bg-pink-100 text-primary" };
+  if (status === "approved") return { label: "ชำระแล้ว", className: "bg-success/15 text-success" };
   if (status === "rejected") return { label: "ถูกปฏิเสธ", className: "bg-destructive/10 text-destructive" };
-  return { label: "รอตรวจสอบ", className: "bg-secondary text-muted-foreground" };
+  return { label: "รอตรวจสอบ", className: "bg-warning/15 text-warning-foreground" };
 }
 
 function installmentStatus(installment: InstallmentRow, today: string): StatusInfo {
-  if (installment.status === "approved") return { label: "ชำระแล้ว", className: "bg-pink-100 text-primary" };
+  if (installment.status === "approved") return { label: "ชำระแล้ว", className: "bg-success/15 text-success" };
   if (installment.status === "rejected") return { label: "ถูกปฏิเสธ", className: "bg-destructive/10 text-destructive" };
   if (installment.dueDate < today) return { label: "เกินกำหนด", className: "bg-destructive/10 text-destructive" };
-  return { label: "รอชำระ", className: "bg-secondary text-muted-foreground" };
+  return { label: "รอชำระ", className: "bg-warning/15 text-warning-foreground" };
 }
 
 export function DashboardView({ customerName }: { customerName: string }) {
@@ -69,7 +69,7 @@ export function DashboardView({ customerName }: { customerName: string }) {
       <header className="border-b bg-card">
         <div className="mx-auto flex h-17 max-w-6xl items-center justify-between px-4 sm:px-6">
           <Link href="/" className="flex items-center gap-2 font-semibold">
-            <span className="grid size-8 place-items-center rounded-lg bg-primary text-xs font-bold text-primary-foreground">
+            <span className="grid size-8 place-items-center rounded-lg bg-gradient-brand text-xs font-bold text-primary-foreground">
               W
             </span>
             วิปอายโฟน
@@ -86,7 +86,7 @@ export function DashboardView({ customerName }: { customerName: string }) {
             <p className="text-sm text-muted-foreground">สวัสดี, {customerName}</p>
             <h1 className="mt-1 text-3xl font-semibold tracking-tight">การผ่อนของฉัน</h1>
           </div>
-          <Button asChild className="rounded-full">
+          <Button asChild className="rounded-full bg-gradient-brand text-primary-foreground">
             <Link href={payNowHref}>
               <ReceiptText className="mr-1.5 size-4" />
               แจ้งชำระค่างวด
@@ -101,24 +101,28 @@ export function DashboardView({ customerName }: { customerName: string }) {
           </div>
         ) : nextItem ? (
           <div className="mt-7 grid gap-5 lg:grid-cols-[1.35fr_.65fr]">
-            <section className="rounded-2xl bg-primary p-6 text-primary-foreground">
-              <div className="flex items-start justify-between">
+            <section className="relative overflow-hidden rounded-2xl bg-gradient-brand p-6 text-primary-foreground">
+              <div aria-hidden className="pointer-events-none absolute -right-10 -top-10 size-40 rounded-full bg-white/10 blur-2xl" />
+              <div className="relative flex items-start justify-between">
                 <div>
                   <p className="text-sm text-primary-foreground/70">งวดที่ต้องชำระ</p>
                   <p className="mt-2 text-3xl font-semibold">{money.format(nextItem.installment.amount)}</p>
                 </div>
-                <Badge className="border-0 bg-primary-foreground/14 text-primary-foreground hover:bg-primary-foreground/14">
+                <Badge className={`border-0 ${overdue ? "bg-destructive text-white" : "bg-primary-foreground/14 text-primary-foreground"} hover:bg-primary-foreground/14`}>
                   {overdue ? "เกินกำหนดชำระ" : "ครบกำหนด " + thaiDate.format(new Date(nextItem.installment.dueDate))}
                 </Badge>
               </div>
-              <div className="mt-8 flex items-end justify-between border-t border-primary-foreground/15 pt-4">
+              <div className="relative mt-8 flex items-end justify-between border-t border-primary-foreground/15 pt-4">
                 <div>
                   <p className="text-xs text-primary-foreground/70">
                     {nextItem.order.productName} · งวดที่ {nextItem.installment.sequence} จาก {nextItem.order.installments.length}
                   </p>
                   <p className="mt-1 text-sm">ครบกำหนด {thaiDate.format(new Date(nextItem.installment.dueDate))}</p>
                 </div>
-                <Link href={payNowHref} className="flex items-center gap-1 text-sm font-medium underline underline-offset-4">
+                <Link
+                  href={payNowHref}
+                  className="flex items-center gap-1.5 rounded-full bg-primary-foreground px-4 py-2 text-sm font-medium text-primary shadow-sm transition-transform hover:scale-[1.03]"
+                >
                   ชำระเลย <ArrowRight className="size-4" />
                 </Link>
               </div>
@@ -126,9 +130,9 @@ export function DashboardView({ customerName }: { customerName: string }) {
             <section className="rounded-2xl border bg-card p-6">
               <p className="text-sm text-muted-foreground">ยอดคงเหลือ</p>
               <p className="mt-2 text-2xl font-semibold">{money.format(remaining)}</p>
-              <div className="mt-5 h-2 overflow-hidden rounded-full bg-secondary">
+              <div className="mt-5 h-2.5 overflow-hidden rounded-full bg-secondary">
                 <div
-                  className="h-full rounded-full bg-primary"
+                  className="h-full rounded-full bg-gradient-brand transition-[width] duration-500"
                   style={{ width: totalCount > 0 ? `${(paidCount / totalCount) * 100}%` : "0%" }}
                 />
               </div>
@@ -138,7 +142,7 @@ export function DashboardView({ customerName }: { customerName: string }) {
             </section>
           </div>
         ) : pendingFullOrder ? (
-          <div className="mt-7 rounded-2xl bg-primary p-6 text-primary-foreground">
+          <div className="mt-7 rounded-2xl bg-gradient-brand p-6 text-primary-foreground">
             <p className="text-sm text-primary-foreground/70">{pendingFullOrder.productName}</p>
             <p className="mt-2 text-2xl font-semibold">รอตรวจสอบการชำระ</p>
             <p className="mt-2 text-sm text-primary-foreground/80">
@@ -149,7 +153,7 @@ export function DashboardView({ customerName }: { customerName: string }) {
           <div className="mt-7 rounded-2xl border border-dashed bg-card p-8 text-center">
             <p className="font-medium">ยังไม่มีคำสั่งซื้อ</p>
             <p className="mt-2 text-sm text-muted-foreground">เลือก iPhone ที่ถูกใจแล้วเริ่มผ่อนหรือชำระเต็มได้เลย</p>
-            <Button asChild className="mt-5 rounded-full">
+            <Button asChild className="mt-5 rounded-full bg-gradient-brand text-primary-foreground">
               <Link href="/phones">เลือกซื้อ iPhone</Link>
             </Button>
           </div>
@@ -200,7 +204,7 @@ export function DashboardView({ customerName }: { customerName: string }) {
                           <div key={installment.id} className="flex items-center gap-4 px-5 py-4">
                             <span
                               className={`grid size-9 shrink-0 place-items-center rounded-full ${
-                                installment.status === "approved" ? "bg-pink-100 text-primary" : "bg-secondary text-primary"
+                                installment.status === "approved" ? "bg-success/15 text-success" : "bg-secondary text-primary"
                               }`}
                             >
                               {installment.status === "approved" ? (
@@ -263,16 +267,16 @@ export function DashboardView({ customerName }: { customerName: string }) {
         </section>
       </div>
 
-      <nav className="fixed inset-x-0 bottom-0 flex justify-around border-t bg-card/95 px-4 py-3 text-xs backdrop-blur sm:hidden">
-        <Link href="/" className="grid justify-items-center gap-1 text-muted-foreground">
+      <nav className="fixed inset-x-0 bottom-0 flex justify-around border-t bg-card/95 px-4 py-2.5 text-xs backdrop-blur sm:hidden">
+        <Link href="/" className="grid justify-items-center gap-1 rounded-xl px-4 py-1 text-muted-foreground">
           <Home className="size-4" />
           หน้าแรก
         </Link>
-        <Link href="/dashboard" className="grid justify-items-center gap-1 text-primary">
+        <Link href="/dashboard" className="grid justify-items-center gap-1 rounded-xl bg-secondary px-4 py-1 font-medium text-primary">
           <ReceiptText className="size-4" />
           ค่างวด
         </Link>
-        <Link href={payNowHref} className="grid justify-items-center gap-1 text-muted-foreground">
+        <Link href={payNowHref} className="grid justify-items-center gap-1 rounded-xl px-4 py-1 text-muted-foreground">
           <CreditCard className="size-4" />
           ชำระเงิน
         </Link>

@@ -2,18 +2,12 @@
 
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronRight, ImageOff, Search } from "lucide-react";
+import { BatteryMedium, ChevronRight, ImageOff, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { money } from "@/lib/mock-data";
-import type { StockPhone } from "@/app/api/phones/route";
+import { getPhones } from "@/lib/phones";
 
 const TONES = ["bg-stone-100", "bg-pink-50", "bg-rose-50", "bg-fuchsia-50"];
-
-async function getPhones(): Promise<StockPhone[]> {
-  const response = await fetch("/api/phones");
-  if (!response.ok) throw new Error("โหลดสินค้าไม่สำเร็จ");
-  return response.json();
-}
 
 export default function PhonesPage() {
   const { data: phones = [], isLoading } = useQuery({
@@ -27,7 +21,7 @@ export default function PhonesPage() {
       <header className="border-b bg-card">
         <div className="mx-auto flex h-17 max-w-7xl items-center justify-between px-4 sm:px-6">
           <Link href="/" className="flex items-center gap-2 font-semibold">
-            <span className="grid size-8 place-items-center rounded-lg bg-primary text-xs font-bold text-primary-foreground">
+            <span className="grid size-8 place-items-center rounded-lg bg-gradient-brand text-xs font-bold text-primary-foreground">
               W
             </span>
             วิปอายโฟน
@@ -70,7 +64,7 @@ export default function PhonesPage() {
               <Link
                 href={`/phones/${phone.id}`}
                 key={phone.id}
-                className="group rounded-2xl border bg-card p-3 transition-transform duration-200 hover:-translate-y-1"
+                className="group rounded-2xl border bg-card p-3 transition-all duration-200 hover:-translate-y-1.5 hover:shadow-[0_16px_32px_-16px_var(--primary)]"
               >
                 <div className={`relative aspect-square overflow-hidden rounded-xl ${TONES[i % TONES.length]}`}>
                   {phone.image ? (
@@ -85,7 +79,7 @@ export default function PhonesPage() {
                     </div>
                   )}
                   {phone.condition && (
-                    <span className="absolute left-3 top-3 rounded-full bg-card/95 px-2.5 py-1 text-xs font-medium">
+                    <span className="absolute left-3 top-3 rounded-full bg-card/95 px-2.5 py-1 text-xs font-medium shadow-sm">
                       {phone.condition}
                     </span>
                   )}
@@ -96,10 +90,15 @@ export default function PhonesPage() {
                     <div>
                       <p className="text-lg font-semibold">{money.format(phone.price)}</p>
                       {phone.battery != null && (
-                        <p className="text-xs text-muted-foreground">แบตเตอรี่ {phone.battery}%</p>
+                        <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
+                          <BatteryMedium className="size-3.5 text-success" />
+                          แบตเตอรี่ {phone.battery}%
+                        </p>
                       )}
                     </div>
-                    <ChevronRight className="mb-1 size-4 text-primary" />
+                    <span className="grid size-8 place-items-center rounded-full bg-secondary transition-colors group-hover:bg-gradient-brand group-hover:text-primary-foreground">
+                      <ChevronRight className="size-4" />
+                    </span>
                   </div>
                 </div>
               </Link>
